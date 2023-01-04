@@ -1,6 +1,9 @@
 import { writable, derived } from 'svelte/store';
+import { browser } from '$app/environment';
 
-export const query = writable('');
+export const query = writable(
+	!browser ? '' : new URL(location.href).searchParams.getAll('q').join(' '),
+);
 
 type Song = {
 	name: string;
@@ -12,30 +15,35 @@ type Song = {
 };
 
 type QueryResult = {
-	error: null | Error;
+	loading: boolean;
 	songs: Song[];
 };
 
-export const query_result = derived(
+export const songs = derived(
 	query,
 	(q, set) => {
-		if (q != '') {
-			q = `where ${q}`;
-		}
+		console.log(q);
 		import('./songs')
-			.then(async ({ db }) => {
-				let r = await db.query(`select * from song ${q}`);
-				set({
-					error: null,
-					songs: r as any,
-				});
-			})
-			.catch((err) => {
-				set({
-					error: err,
-					songs: [],
-				});
+			.then(({ db }) => db)
+			.then(async (db) => {
+				let s = q
+					.split(' ')
+					.filter((w) => w.trim().length > 0)
+					.map((word) => {
+						let chunk = ['name', 'singer', 'lang', 'name_jp', 'source', 'remark']
+							.map((field) => {
+								return `${field} like '%${word}%'`;
+							})
+							.join(' or ');
+						return `(${chunk})`;
+					})
+					.join(' and ');
+				if (s !== '') {
+					s = 'where ' + s;
+				}
+				let r = await db.query(`select * from song ${s}`);
+				set(r as any);
 			});
 	},
-	{ error: null, songs: [] } as QueryResult,
+	[] as Song[],
 );

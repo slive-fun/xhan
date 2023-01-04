@@ -3,5 +3,7 @@
 	import Songs from './songs.svelte';
 </script>
 
-<Query />
-<Songs />
+<div class="layout">
+	<Query />
+	<Songs />
+</div>
