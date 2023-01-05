@@ -1,3 +1,6 @@
+/static/pb_data/
+/static/pb_migrations/
+
 .DS_Store
 node_modules
 /build
