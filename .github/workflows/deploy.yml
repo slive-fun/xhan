@@ -28,6 +28,7 @@ jobs:
         run: |
           npm install
           npm run build
+          wget -O build/pb_data/data.db https://ipk.wsl.fun/xhan/data.db
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@4.1.5
